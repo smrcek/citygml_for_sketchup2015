@@ -148,16 +148,7 @@ module FHGelsenkirchen
     @wallsurface = false
     @roofsurface = false
     @groundsurface = false
-    @floorsurface = false
     @relieffeature = false
-    @outerfloorsurface = false
-    @intbuildinginstallation = false
-    @buildinginstallation = false
-    @door = false
-    @window = false
-    @ceilingsurface = false
-    @interiorwallsurface = false
-    
     entities.each do |e|
       if(e.class == Sketchup::Face)
         if(type != nil)
@@ -222,8 +213,8 @@ module FHGelsenkirchen
       if(e.class == Sketchup::Face)
         value = nil #= e.get_attribute "Standard attribute", "SurfaceType", nil
         #value = e.layer.name
-        #if(e.layer.name != value) ## doplnit vybrane typy ploch / floorsurface
-        if(e.layer.name == "GroundSurface" or e.layer.name == "WallSurface" or e.layer.name == "FloorSurface" or e.layer.name == "RoofSurface" or e.layer.name == "ReliefFeature" or e.layer.name == "OuterFloorSurface" or e.layer.name == "IntBuildingInstallation" or e.layer.name == "BuildingInstallation" or e.layer.name == "Door" or e.layer.name == "Window" or e.layer.name == "CeilingSurface" or e.layer.name == "InteriorWallSurface" or e.layer.name == "No Surfacetype")
+        #if(e.layer.name != value)
+        if(e.layer.name == "GroundSurface" or e.layer.name == "WallSurface" or e.layer.name == "RoofSurface" or e.layer.name == "ReliefFeature" or e.layer.name == "No Surfacetype")
           #e.set_attribute "Standard attribute", "SurfaceType", e.layer.name
           value = e.layer.name
         end
@@ -265,26 +256,26 @@ module FHGelsenkirchen
     end
     str = s;
 
-    str.gsub!("\x80".force_encoding('binary'),'€')
-    str.gsub!("\x83".force_encoding('binary'),'ƒ')
-    str.gsub!("\x89".force_encoding('binary'),'‰')
+    str.gsub!(/\x80/,'€')
+    str.gsub!(/\x83/,'ƒ')
+    str.gsub!(/\x89/,'‰')
 
-    str.gsub!("\xA7".force_encoding('binary'),'§')
-    str.gsub!("\xA9".force_encoding('binary'),'©')
+    str.gsub!(/\xA7/,'§')
+    str.gsub!(/\xA9/,'©')
 
-    str.gsub!("\xB0".force_encoding('binary'),'°')
-    str.gsub!("\xB5".force_encoding('binary'),'µ')
+    str.gsub!(/\xB0/,'°')
+    str.gsub!(/\xB5/,'µ')
 
-    str.gsub!("\xC4".force_encoding('binary'),'Ä')
+    str.gsub!(/\xC4/,'Ä')
 
-    str.gsub!("\xD6".force_encoding('binary'),'Ö')
-    str.gsub!("\xDC".force_encoding('binary'),'Ü')
-    str.gsub!("\xDF".force_encoding('binary'),'ß')
+    str.gsub!(/\xD6/,'Ö')
+    str.gsub!(/\xDC/,'Ü')
+    str.gsub!(/\xDF/,'ß')
 
-    str.gsub!("\xE4".force_encoding('binary'),'ä')
+    str.gsub!(/\xE4/,'ä')
 
-    str.gsub!("\xF6".force_encoding('binary'),'ö')
-    str.gsub!("\xFC".force_encoding('binary'),'ü')
+    str.gsub!(/\xF6/,'ö')
+    str.gsub!(/\xFC/,'ü')
 
     return str
   end

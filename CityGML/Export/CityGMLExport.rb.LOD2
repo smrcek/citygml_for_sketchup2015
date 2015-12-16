@@ -1,6 +1,6 @@
 require 'CityGML\Export\WorldFileLoader'
 require 'CityGML\Export\GMLExportDialog'
-require 'CityGML/Attribute/attribute' 
+require 'CityGML/Attribute/attribute'
 
 module FHGelsenkirchen
   #Klasse zum Exportieren von Modellen
@@ -168,14 +168,6 @@ module FHGelsenkirchen
             @handle << "<bldg:storeyHeightsBelowGround uom=\"m\">#{value.to_s()}</bldg:storeyHeightsBelowGround>\n"
           when "roofType"
             @handle << "<bldg:roofType>#{value.to_s()}</bldg:roofType>\n"
-			when "description"
-            @handle << "<gml:description>#{value.to_s()}</gml:description>\n"
-          when "name"
-            @handle << "<gml:name>#{value.to_s()}</gml:name>\n"
-          when "creationDate"
-            @handle << "<core:creationDate>#{value.to_s()}</core:creationDate>\n"
-          when "terminationDate"
-            @handle << "<core:terminationDate>#{value.to_s()}</core:terminationDate>\n"
           end
         end
       end
@@ -553,34 +545,18 @@ module FHGelsenkirchen
       @x3dmaterial = Hash.new()
       @valid = 0
       @backMaterialCount = 0
-## doplnena funkce dle pozadovaneho typu
+
       stdbuilding = ""
       stdbuildingid = ""
       stdgroundsurfaces = Hash.new
       stdwallsurfaces = Hash.new
       stdroofsurfaces = Hash.new
-	    stdouterfloorsurfaces  = Hash.new ##
-      stdintbuildinginstallations  = Hash.new ##
-      stdbuildinginstallations  = Hash.new ##
-      stddoors  = Hash.new ##
-      stdwindows  = Hash.new ##
-      stdceilingsurfaces  = Hash.new ##
-      stdinteriorwallsurfaces  = Hash.new ##
-      stdfloorsurfaces = Hash.new ##
       stdnosurfacetype = ""
       stdpolygonpos = 0
       
       groundsurfaces = Hash.new
       wallsurfaces = Hash.new
       roofsurfaces = Hash.new
-	    floorsurfaces = Hash.new ##
-      intbuildinginstallations  = Hash.new ##
-      buildinginstallations  = Hash.new ##
-      doors  = Hash.new ##
-      windows  = Hash.new ##
-      ceilingsurfaces  = Hash.new ##
-      interiorwallsurfaces  = Hash.new ##
-      outerfloorsurfaces = Hash.new ##
       nosurfacetype = ""
 
       model = Sketchup.active_model
@@ -677,24 +653,24 @@ module FHGelsenkirchen
           explodedentities.each do |explode|
             if(explode.class == Sketchup::Face)
               polygonpos += 1
-              #Face wird exportiert ## doplneny pozadovany typ
-              nosurfacetype << writeface(explode, transformation,1, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, floorsurfaces, outerfloorsurfaces, intbuildinginstallations, buildinginstallations, doors, windows, ceilingsurfaces, interiorwallsurfaces, nosurfacetype)
+              #Face wird exportiert
+              nosurfacetype << writeface(explode, transformation,1, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, nosurfacetype)
               #Wird erneut eine Group/ComponentInstance gefunden, Methode writegroup aufgerufen
             elsif(explode.class ==Sketchup::Group)
               if(explode.name != "")
                 puts "exporting #{explode.name}"
-              end ## doplneny pozadovany typ
-              polygonpos = writegroup(explode.entities(), transformation * explode.transformation, 1, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, floorsurfaces, outerfloorsurfaces, intbuildinginstallations, buildinginstallations, doors, windows, ceilingsurfaces, interiorwallsurfaces, nosurfacetype)
+              end
+              polygonpos = writegroup(explode.entities(), transformation * explode.transformation, 1, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, nosurfacetype)
             elsif(explode.class == Sketchup::ComponentInstance)
               if(explode.name != "")
                 puts "exporting #{explode.name}"
-              end ## doplneny pozadovany typ
-              polygonpos = writegroup(explode.definition.entities, transformation * explode.transformation, 1, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, floorsurfaces, outerfloorsurfaces, intbuildinginstallations, buildinginstallations, doors, windows, ceilingsurfaces, interiorwallsurfaces, nosurfacetype)
+              end
+              polygonpos = writegroup(explode.definition.entities, transformation * explode.transformation, 1, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, nosurfacetype)
             end
           end
           #Alle Entities sind in Buffern gespeichert und können in XML-Datei
-          #gespeichert werden ##doplneny pozadovany typ
-          if(groundsurfaces.size > 0 or wallsurfaces.size > 0 or roofsurfaces.size > 0 or floorsurfaces.size > 0 or outerfloorsurfaces.size > 0  or intbuildinginstallations.size > 0 or buildinginstallations.size > 0 or doors.size > 0 or windows.size > 0 or ceilingsurfaces.size > 0 or interiorwallsurfaces.size > 0 or nosurfacetype != "")
+          #gespeichert werden
+          if(groundsurfaces.size > 0 or wallsurfaces.size > 0 or roofsurfaces.size > 0 or nosurfacetype != "")
             @handle << "<core:cityObjectMember>\n"
             if(buildingid != nil and buildingid != "" )
               if(@exportedid[buildingid] == nil)
@@ -795,8 +771,8 @@ module FHGelsenkirchen
                 end
               end
             end
-            exportGenAttributes(curr_entity.attribute_dictionaries) ## doplneny pozadovany typ
-            writebuffers(@lod, groundsurfaces, wallsurfaces, roofsurfaces, floorsurfaces, outerfloorsurfaces, intbuildinginstallations, buildinginstallations, doors, windows, ceilingsurfaces, interiorwallsurfaces, nosurfacetype, actbuildingid)
+            exportGenAttributes(curr_entity.attribute_dictionaries)
+            writebuffers(@lod, groundsurfaces, wallsurfaces, roofsurfaces, nosurfacetype, actbuildingid)
             nosurfacetype = ""
             @handle << "</bldg:Building>\n"
             @handle << "</core:cityObjectMember>\n"
@@ -816,8 +792,8 @@ module FHGelsenkirchen
               stdbuilding << "<bldg:Building>\n"
             end
           end
-          stdpolygonpos += 1 ## doplneny pozadovany typ
-          stdnosurfacetype << writeface(entity,Geom::Transformation.new, 1, tw, stdbuildingid, stdpolygonpos, stdgroundsurfaces, stdroofsurfaces, stdwallsurfaces, stdfloorsurfaces, stdouterfloorsurfaces, stdintbuildinginstallations, stdbuildinginstallations, stddoors, stdwindows, stdceilingsurfaces, stdinteriorwallsurfaces, stdnosurfacetype)
+          stdpolygonpos += 1
+          stdnosurfacetype << writeface(entity,Geom::Transformation.new, 1, tw, stdbuildingid, stdpolygonpos, stdgroundsurfaces, stdroofsurfaces, stdwallsurfaces,stdnosurfacetype)
         end
 
       end
@@ -886,8 +862,8 @@ module FHGelsenkirchen
             end
           end
         end
-		## doplneny pozadovany typ
-        writebuffers(@lod, stdgroundsurfaces, stdwallsurfaces, stdroofsurfaces, stdfloorsurfaces, stdouterfloorsurfaces, stdintbuildinginstallations, stdbuildinginstallations, stddoors, stdwindows, stdceilingsurfaces, stdinteriorwallsurfaces, stdnosurfacetype, stdbuildingid)
+
+        writebuffers(@lod, stdgroundsurfaces, stdwallsurfaces, stdroofsurfaces, stdnosurfacetype, stdbuildingid)
         @handle << "</bldg:Building>\n"
         @handle << "</core:cityObjectMember>\n"
       end
@@ -962,7 +938,7 @@ module FHGelsenkirchen
       rescue => e
       end
     rescue => e
-      #@debug.close()
+      ##@debug.close()
       if(e.message == "LinearRingException")
         UI.messagebox("DEBUG")
         UI.messagebox("There are surfaces with same LinearRing-ID.\nTry the fix option or correct the ids\nExport canceled", MB_OK )
@@ -984,9 +960,9 @@ module FHGelsenkirchen
     #Parameter 3: wallsurfaces beeinhaltet alle WallSurfaces
     #Parameter 4: roofsurfaces beinhaltet alle RoofSurfaces
     #Parameter 5: nosurfacetype beinhaltet alle Surfaces, die keinen Typ haben
-    #Parameter 6: actbuildingid, gibt die ID des aktuellen Buildings an ## doplneny pozadovany typ
-    def writebuffers(lod, groundsurfaces, wallsurfaces, roofsurfaces, floorsurfaces, outerfloorsurfaces, intbuildinginstallations, buildinginstallations, doors, windows, ceilingsurfaces, interiorwallsurfaces, nosurfacetype, actbuildingid)## doplneny pozadovany typ
-      return if(groundsurfaces.size == 0 and wallsurfaces.size == 0 and roofsurfaces.size == 0 and floorsurfaces.size == 0 and outerfloorsurfaces.size == 0 and intbuildinginstallations.size == 0 and buildinginstallations.size == 0 and doors.size == 0 and windows.size == 0 and ceilingsurfaces.size == 0 and interiorwallsurfaces.size == 0 and nosurfacetype == "")
+    #Parameter 6: actbuildingid, gibt die ID des aktuellen Buildings an
+    def writebuffers(lod, groundsurfaces, wallsurfaces, roofsurfaces, nosurfacetype, actbuildingid)
+      return if(groundsurfaces.size == 0 and wallsurfaces.size == 0 and roofsurfaces.size == 0 and nosurfacetype == "")
       if(nosurfacetype != "")
         @handle << "<#{lod}>\n"
         if(@gmlType == 1)
@@ -1007,8 +983,8 @@ module FHGelsenkirchen
         
         @handle << "</#{lod}>\n"
       end
-      #Gibt es Surfaces mit Typ, werden diese im boundedBy-Tag gespeichert ## doplneny pozadovany typ
-      if(wallsurfaces.size > 0 or roofsurfaces.size > 0 or floorsurfaces.size > 0 or outerfloorsurfaces.size > 0 or groundsurfaces.size > 0 or intbuildinginstallations.size > 0 or buildinginstallations.size > 0 or doors.size > 0 or windows.size > 0 or ceilingsurfaces.size > 0 or interiorwallsurfaces.size > 0)
+      #Gibt es Surfaces mit Typ, werden diese im boundedBy-Tag gespeichert
+      if(wallsurfaces.size > 0 or roofsurfaces.size > 0 or groundsurfaces.size > 0)
         
         if(wallsurfaces.size > 0)
           wallsurfaces.each_pair {|key, value|
@@ -1213,591 +1189,14 @@ module FHGelsenkirchen
             end
           }
         end
-## doplneny pozadovany typ pro celou funkci
-		if(floorsurfaces.size > 0)
-          floorsurfaces.each_pair {|key, value|
-            if(key != "" and key != nil and !@noid)
-              @handle << "<bldg:boundedBy>\n"
-              if(@noid or (key == nil and !@generate) )
-                @handle << "<bldg:FloorSurface>\n"
-              else
-                @handle << "<bldg:FloorSurface gml:id=\"#{key}\">\n"
-              end
-              
-              @handle << "<#{lod}>\n"
-              @handle << "<gml:MultiSurface"
-              coordinateSystemString()
-              @handle << ">\n"
-              @handle << value
-              @handle << "</gml:MultiSurface>\n"
-              @handle << "</#{lod}>\n"
-              @handle << "</bldg:FloorSurface>\n"
-              @handle << "</bldg:boundedBy>\n"
-            else
-              if(!@groupsurfaces)
-                pos = 1
-                value.each do |v|
-                  @handle << "<bldg:boundedBy>\n"
-                  if(@noid or !@generate)
-                    @handle << "<bldg:FloorSurface>\n"
-                  else
-                    key = "#{actbuildingid}_FloorSurface_#{pos}" if(@generate)
-                    pos += 1
-                    @handle << "<bldg:FloorSurface gml:id=\"#{key}\">\n"
-                  end
 
-                  @handle << "<#{lod}>\n"
-                  @handle << "<gml:MultiSurface"
-                  coordinateSystemString()
-                  @handle << ">\n"
-                  @handle << v
-                  @handle << "</gml:MultiSurface>\n"
-                  @handle << "</#{lod}>\n"
-                  @handle << "</bldg:FloorSurface>\n"
-                  @handle << "</bldg:boundedBy>\n"
-                end
-              else
-                pos = 1
-                @handle << "<bldg:boundedBy>\n"
-                if(@noid or !@generate)
-                  @handle << "<bldg:FloorSurface>\n"
-                else
-                  key = "#{actbuildingid}_FloorSurface_#{pos}" if(@generate)
-                  @handle << "<bldg:FloorSurface gml:id=\"#{key}\">\n"
-                end
-
-                @handle << "<#{lod}>\n"
-                @handle << "<gml:MultiSurface"
-                coordinateSystemString()
-                @handle << ">\n"
-                value.each do |v|
-                  @handle << v
-                end
-                @handle << "</gml:MultiSurface>\n"
-                @handle << "</#{lod}>\n"
-                @handle << "</bldg:FloorSurface>\n"
-                @handle << "</bldg:boundedBy>\n"
-              end
-            end
-          }
-        end
-        
-  if(outerfloorsurfaces.size > 0)
-          outerfloorsurfaces.each_pair {|key, value|
-            if(key != "" and key != nil and !@noid)
-              @handle << "<bldg:boundedBy>\n"
-              if(@noid or (key == nil and !@generate) )
-                @handle << "<bldg:OuterFloorSurface>\n"
-              else
-                @handle << "<bldg:OuterFloorSurface gml:id=\"#{key}\">\n"
-              end
-              
-              @handle << "<#{lod}>\n"
-              @handle << "<gml:MultiSurface"
-              coordinateSystemString()
-              @handle << ">\n"
-              @handle << value
-              @handle << "</gml:MultiSurface>\n"
-              @handle << "</#{lod}>\n"
-              @handle << "</bldg:OuterFloorSurface>\n"
-              @handle << "</bldg:boundedBy>\n"
-            else
-              if(!@groupsurfaces)
-                pos = 1
-                value.each do |v|
-                  @handle << "<bldg:boundedBy>\n"
-                  if(@noid or !@generate)
-                    @handle << "<bldg:OuterFloorSurface>\n"
-                  else
-                    key = "#{actbuildingid}_OuterFloorSurface_#{pos}" if(@generate)
-                    pos += 1
-                    @handle << "<bldg:OuterFloorSurface gml:id=\"#{key}\">\n"
-                  end
-
-                  @handle << "<#{lod}>\n"
-                  @handle << "<gml:MultiSurface"
-                  coordinateSystemString()
-                  @handle << ">\n"
-                  @handle << v
-                  @handle << "</gml:MultiSurface>\n"
-                  @handle << "</#{lod}>\n"
-                  @handle << "</bldg:OuterFloorSurface>\n"
-                  @handle << "</bldg:boundedBy>\n"
-                end
-              else
-                pos = 1
-                @handle << "<bldg:boundedBy>\n"
-                if(@noid or !@generate)
-                  @handle << "<bldg:FloorSurface>\n"
-                else
-                  key = "#{actbuildingid}_OuterFloorSurface_#{pos}" if(@generate)
-                  @handle << "<bldg:OuterFloorSurface gml:id=\"#{key}\">\n"
-                end
-
-                @handle << "<#{lod}>\n"
-                @handle << "<gml:MultiSurface"
-                coordinateSystemString()
-                @handle << ">\n"
-                value.each do |v|
-                  @handle << v
-                end
-                @handle << "</gml:MultiSurface>\n"
-                @handle << "</#{lod}>\n"
-                @handle << "</bldg:OuterFloorSurface>\n"
-                @handle << "</bldg:boundedBy>\n"
-              end
-            end
-          }
-        end
-
-       
-###interiorwallsurfaces
-
-if(interiorwallsurfaces.size > 0)
-          interiorwallsurfaces.each_pair {|key, value|
-            if(key != "" and key != nil and !@noid)
-              @handle << "<bldg:boundedBy>\n"
-              if(@noid or (key == nil and !@generate) )
-                @handle << "<bldg:InteriorWallSurface >\n"
-              else
-                @handle << "<bldg:InteriorWallSurface gml:id=\"#{key}\">\n"
-              end
-              
-              @handle << "<#{lod}>\n"
-              @handle << "<gml:MultiSurface"
-              coordinateSystemString()
-              @handle << ">\n"
-              @handle << value
-              @handle << "</gml:MultiSurface>\n"
-              @handle << "</#{lod}>\n"
-              @handle << "</bldg:InteriorWallSurface>\n"
-              @handle << "</bldg:boundedBy>\n"
-            else
-              if(!@groupsurfaces)
-                pos = 1
-                value.each do |v|
-                  @handle << "<bldg:boundedBy>\n"
-                  if(@noid or !@generate)
-                    @handle << "<bldg:InteriorWallSurface>\n"
-                  else
-                    key = "#{actbuildingid}_InteriorWallSurface_#{pos}" if(@generate)
-                    pos += 1
-                    @handle << "<bldg:InteriorWallSurface gml:id=\"#{key}\">\n"
-                  end
-
-                  @handle << "<#{lod}>\n"
-                  @handle << "<gml:MultiSurface"
-                  coordinateSystemString()
-                  @handle << ">\n"
-                  @handle << v
-                  @handle << "</gml:MultiSurface>\n"
-                  @handle << "</#{lod}>\n"
-                  @handle << "</bldg:InteriorWallSurface >\n"
-                  @handle << "</bldg:boundedBy>\n"
-                end
-              else
-                pos = 1
-                @handle << "<bldg:boundedBy>\n"
-                if(@noid or !@generate)
-                  @handle << "<bldg:InteriorWallSurface>\n"
-                else
-                  key = "#{actbuildingid}_InteriorWallSurface_#{pos}" if(@generate)
-                  @handle << "<bldg:InteriorWallSurface gml:id=\"#{key}\">\n"
-                end
-
-                @handle << "<#{lod}>\n"
-                @handle << "<gml:MultiSurface"
-                coordinateSystemString()
-                @handle << ">\n"
-                value.each do |v|
-                  @handle << v
-                end
-                @handle << "</gml:MultiSurface>\n"
-                @handle << "</#{lod}>\n"
-                @handle << "</bldg:InteriorWallSurface>\n"
-                @handle << "</bldg:boundedBy>\n"
-              end
-            end
-          }
-        end
-        
-        
-        
-        ###konec   interiorwallsurfaces
-        
-    ###ceilingsurfaces
-          if(ceilingsurfaces.size > 0)
-          ceilingsurfaces.each_pair {|key, value|
-            if(key != "" and key != nil and !@noid)
-              @handle << "<bldg:boundedBy>\n"
-              if(@noid or (key == nil and !@generate) )
-                @handle << "<bldg:CeilingSurface>\n"
-              else
-                @handle << "<bldg:CeilingSurface gml:id=\"#{key}\">\n"
-              end
-              
-              @handle << "<#{lod}>\n"
-              @handle << "<gml:MultiSurface"
-              coordinateSystemString()
-              @handle << ">\n"
-              @handle << value
-              @handle << "</gml:MultiSurface>\n"
-              @handle << "</#{lod}>\n"
-              @handle << "</bldg:CeilingSurface>\n"
-              @handle << "</bldg:boundedBy>\n"
-            else
-              if(!@groupsurfaces)
-                pos = 1
-                value.each do |v|
-                  @handle << "<bldg:boundedBy>\n"
-                  if(@noid or !@generate)
-                    @handle << "<bldg:CeilingSurface>\n"
-                  else
-                    key = "#{actbuildingid}_CeilingSurface_#{pos}" if(@generate)
-                    pos += 1
-                    @handle << "<bldg:CeilingSurface gml:id=\"#{key}\">\n"
-                  end
-
-                  @handle << "<#{lod}>\n"
-                  @handle << "<gml:MultiSurface"
-                  coordinateSystemString()
-                  @handle << ">\n"
-                  @handle << v
-                  @handle << "</gml:MultiSurface>\n"
-                  @handle << "</#{lod}>\n"
-                  @handle << "</bldg:CeilingSurface>\n"
-                  @handle << "</bldg:boundedBy>\n"
-                end
-              else
-                pos = 1
-                @handle << "<bldg:boundedBy>\n"
-                if(@noid or !@generate)
-                  @handle << "<bldg:CeilingSurface>\n"
-                else
-                  key = "#{actbuildingid}_CeilingSurface_#{pos}" if(@generate)
-                  @handle << "<bldg:CeilingSurface gml:id=\"#{key}\">\n"
-                end
-
-                @handle << "<#{lod}>\n"
-                @handle << "<gml:MultiSurface"
-                coordinateSystemString()
-                @handle << ">\n"
-                value.each do |v|
-                  @handle << v
-                end
-                @handle << "</gml:MultiSurface>\n"
-                @handle << "</#{lod}>\n"
-                @handle << "</bldg:CeilingSurface>\n"
-                @handle << "</bldg:boundedBy>\n"
-              end
-            end
-          }
-        end
-        
-        ## konec ceilingsurfaces
-        
-                ##doors
-        if(doors.size > 0)
-          doors.each_pair {|key, value|
-            if(key != "" and key != nil and !@noid)
-              @handle << "<bldg:boundedBy>\n"
-              if(@noid or (key == nil and !@generate) )
-                @handle << "<bldg:Door>\n"
-              else
-                @handle << "<bldg:Door gml:id=\"#{key}\">\n"
-              end
-              
-              @handle << "<#{lod}>\n"
-              @handle << "<gml:MultiSurface"
-              coordinateSystemString()
-              @handle << ">\n"
-              @handle << value
-              @handle << "</gml:MultiSurface>\n"
-              @handle << "</#{lod}>\n"
-              @handle << "</bldg:Door>\n"
-              @handle << "</bldg:boundedBy>\n"
-            else
-              if(!@groupsurfaces)
-                pos = 1
-                value.each do |v|
-                  @handle << "<bldg:boundedBy>\n"
-                  if(@noid or !@generate)
-                    @handle << "<bldg:Door>\n"
-                  else
-                    key = "#{actbuildingid}_Door_#{pos}" if(@generate)
-                    pos += 1
-                    @handle << "<bldg:Door gml:id=\"#{key}\">\n"
-                  end
-
-                  @handle << "<#{lod}>\n"
-                  @handle << "<gml:MultiSurface"
-                  coordinateSystemString()
-                  @handle << ">\n"
-                  @handle << v
-                  @handle << "</gml:MultiSurface>\n"
-                  @handle << "</#{lod}>\n"
-                  @handle << "</bldg:Door>\n"
-                  @handle << "</bldg:boundedBy>\n"
-                end
-              else
-                pos = 1
-                @handle << "<bldg:boundedBy>\n"
-                if(@noid or !@generate)
-                  @handle << "<bldg:Door>\n"
-                else
-                  key = "#{actbuildingid}_Door_#{pos}" if(@generate)
-                  @handle << "<bldg:Door gml:id=\"#{key}\">\n"
-                end
-
-                @handle << "<#{lod}>\n"
-                @handle << "<gml:MultiSurface"
-                coordinateSystemString()
-                @handle << ">\n"
-                value.each do |v|
-                  @handle << v
-                end
-                @handle << "</gml:MultiSurface>\n"
-                @handle << "</#{lod}>\n"
-                @handle << "</bldg:Door>\n"
-                @handle << "</bldg:boundedBy>\n"
-              end
-            end
-          }
-        end
-        ##konec doors
-        
-        ##windows
-        if(windows.size > 0)
-          windows.each_pair {|key, value|
-            if(key != "" and key != nil and !@noid)
-              @handle << "<bldg:boundedBy>\n"
-              if(@noid or (key == nil and !@generate) )
-                @handle << "<bldg:Window>\n"
-              else
-                @handle << "<bldg:Window gml:id=\"#{key}\">\n"
-              end
-              
-              @handle << "<#{lod}>\n"
-              @handle << "<gml:MultiSurface"
-              coordinateSystemString()
-              @handle << ">\n"
-              @handle << value
-              @handle << "</gml:MultiSurface>\n"
-              @handle << "</#{lod}>\n"
-              @handle << "</bldg:Window>\n"
-              @handle << "</bldg:boundedBy>\n"
-            else
-              if(!@groupsurfaces)
-                pos = 1
-                value.each do |v|
-                  @handle << "<bldg:boundedBy>\n"
-                  if(@noid or !@generate)
-                    @handle << "<bldg:Window>\n"
-                  else
-                    key = "#{actbuildingid}_Window_#{pos}" if(@generate)
-                    pos += 1
-                    @handle << "<bldg:Window gml:id=\"#{key}\">\n"
-                  end
-
-                  @handle << "<#{lod}>\n"
-                  @handle << "<gml:MultiSurface"
-                  coordinateSystemString()
-                  @handle << ">\n"
-                  @handle << v
-                  @handle << "</gml:MultiSurface>\n"
-                  @handle << "</#{lod}>\n"
-                  @handle << "</bldg:Window>\n"
-                  @handle << "</bldg:boundedBy>\n"
-                end
-              else
-                pos = 1
-                @handle << "<bldg:boundedBy>\n"
-                if(@noid or !@generate)
-                  @handle << "<bldg:Window>\n"
-                else
-                  key = "#{actbuildingid}_Window_#{pos}" if(@generate)
-                  @handle << "<bldg:Window gml:id=\"#{key}\">\n"
-                end
-
-                @handle << "<#{lod}>\n"
-                @handle << "<gml:MultiSurface"
-                coordinateSystemString()
-                @handle << ">\n"
-                value.each do |v|
-                  @handle << v
-                end
-                @handle << "</gml:MultiSurface>\n"
-                @handle << "</#{lod}>\n"
-                @handle << "</bldg:Window>\n"
-                @handle << "</bldg:boundedBy>\n"
-              end
-            end
-          }
-        end
-        
-        ##konec windows
-        
-        ##intBuildingInstallation
-        
-        if(intbuildinginstallations.size > 0)
-          intbuildinginstallations.each_pair {|key, value|
-            if(key != "" and key != nil and !@noid)
-              @handle << "<bldg:boundedBy>\n"
-              if(@noid or (key == nil and !@generate) )
-                @handle << "<bldg:IntBuildingInstallation>\n"
-              else
-                @handle << "<bldg:IntBuildingInstallation gml:id=\"#{key}\">\n"
-              end
-              
-              @handle << "<#{lod}>\n"
-              @handle << "<gml:MultiSurface"
-              coordinateSystemString()
-              @handle << ">\n"
-              @handle << value
-              @handle << "</gml:MultiSurface>\n"
-              @handle << "</#{lod}>\n"
-              @handle << "</bldg:IntBuildingInstallation>\n"
-              @handle << "</bldg:boundedBy>\n"
-            else
-              if(!@groupsurfaces)
-                pos = 1
-                value.each do |v|
-                  @handle << "<bldg:boundedBy>\n"
-                  if(@noid or !@generate)
-                    @handle << "<bldg:IntBuildingInstallation>\n"
-                  else
-                    key = "#{actbuildingid}_IntBuildingInstallation_#{pos}" if(@generate)
-                    pos += 1
-                    @handle << "<bldg:IntBuildingInstallation gml:id=\"#{key}\">\n"
-                  end
-
-                  @handle << "<#{lod}>\n"
-                  @handle << "<gml:MultiSurface"
-                  coordinateSystemString()
-                  @handle << ">\n"
-                  @handle << v
-                  @handle << "</gml:MultiSurface>\n"
-                  @handle << "</#{lod}>\n"
-                  @handle << "</bldg:IntBuildingInstallation>\n"
-                  @handle << "</bldg:boundedBy>\n"
-                end
-              else
-                pos = 1
-                @handle << "<bldg:boundedBy>\n"
-                if(@noid or !@generate)
-                  @handle << "<bldg:IntBuildingInstallation>\n"
-                else
-                  key = "#{actbuildingid}_IntBuildingInstallation_#{pos}" if(@generate)
-                  @handle << "<bldg:IntBuildingInstallation gml:id=\"#{key}\">\n"
-                end
-
-                @handle << "<#{lod}>\n"
-                @handle << "<gml:MultiSurface"
-                coordinateSystemString()
-                @handle << ">\n"
-                value.each do |v|
-                  @handle << v
-                end
-                @handle << "</gml:MultiSurface>\n"
-                @handle << "</#{lod}>\n"
-                @handle << "</bldg:IntBuildingInstallation>\n"
-                @handle << "</bldg:boundedBy>\n"
-              end
-            end
-          }
-        end
-        
-        ##konec intBuildingInstallation
-        
-        ##BuildingInstallation
-        
-        if(buildinginstallations.size > 0)
-          buildinginstallations.each_pair {|key, value|
-            if(key != "" and key != nil and !@noid)
-              @handle << "<bldg:boundedBy>\n"
-              if(@noid or (key == nil and !@generate) )
-                @handle << "<bldg:BuildingInstallation>\n"
-              else
-                @handle << "<bldg:BuildingInstallation gml:id=\"#{key}\">\n"
-              end
-              
-              @handle << "<#{lod}>\n"
-              @handle << "<gml:MultiSurface"
-              coordinateSystemString()
-              @handle << ">\n"
-              @handle << value
-              @handle << "</gml:MultiSurface>\n"
-              @handle << "</#{lod}>\n"
-              @handle << "</bldg:BuildingInstallation>\n"
-              @handle << "</bldg:boundedBy>\n"
-            else
-              if(!@groupsurfaces)
-                pos = 1
-                value.each do |v|
-                  @handle << "<bldg:boundedBy>\n"
-                  if(@noid or !@generate)
-                    @handle << "<bldg:BuildingInstallation>\n"
-                  else
-                    key = "#{actbuildingid}_BuildingInstallation_#{pos}" if(@generate)
-                    pos += 1
-                    @handle << "<bldg:BuildingInstallation gml:id=\"#{key}\">\n"
-                  end
-
-                  @handle << "<#{lod}>\n"
-                  @handle << "<gml:MultiSurface"
-                  coordinateSystemString()
-                  @handle << ">\n"
-                  @handle << v
-                  @handle << "</gml:MultiSurface>\n"
-                  @handle << "</#{lod}>\n"
-                  @handle << "</bldg:BuildingInstallation>\n"
-                  @handle << "</bldg:boundedBy>\n"
-                end
-              else
-                pos = 1
-                @handle << "<bldg:boundedBy>\n"
-                if(@noid or !@generate)
-                  @handle << "<bldg:BuildingInstallation>\n"
-                else
-                  key = "#{actbuildingid}_BuildingInstallation_#{pos}" if(@generate)
-                  @handle << "<bldg:BuildingInstallation gml:id=\"#{key}\">\n"
-                end
-
-                @handle << "<#{lod}>\n"
-                @handle << "<gml:MultiSurface"
-                coordinateSystemString()
-                @handle << ">\n"
-                value.each do |v|
-                  @handle << v
-                end
-                @handle << "</gml:MultiSurface>\n"
-                @handle << "</#{lod}>\n"
-                @handle << "</bldg:BuildingInstallation>\n"
-                @handle << "</bldg:boundedBy>\n"
-              end
-            end
-          }
-        end
-        
-        ## konec BuildingInstallation
-        
-        
-  
       end
-      #Inhalte löschen ## doplneny pozadovany typ
+      #Inhalte löschen
       nosurfacetype = ""
       groundsurfaces.clear
       wallsurfaces.clear
       roofsurfaces.clear
-	    floorsurfaces.clear
-      outerfloorsurfaces.clear
-      intbuildinginstallations.clear
-      buildinginstallations.clear
-      doors.clear
-      windows.clear
-      ceilingsurfaces.clear
-      interiorwallsurfaces.clear
-      end
+    end
 
     #Generiert eine neue BuildingId
     def newrandombuildingid()
@@ -1855,31 +1254,30 @@ if(interiorwallsurfaces.size > 0)
     #Parameter 6: polygonpos zählt Anzahl Polygone hoch
     #Parameter 7: groundsurfaces ist Buffer für GroundSurfaces
     #Parameter 8: roofsurfaces ist Buffer für Roofsurface
-    #Parameter 9: wallsurfaces ist Buffer für WallSurfaces ## doplneny pozadovany typ a precislovano
-    #Parameter 10: floorsurfaces ist Buffer für FloorSurfaces
-	#Parameter 11: nosurfacetype ist Buffer für alle Flächen ohne Surfacetyp
-    def writegroup(entities, transformation, za, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, floorsurfaces, outerfloorsurfaces, intbuildinginstallations, buildinginstallations, doors, windows, ceilingsurfaces, interiorwallsurfaces, nosurfacetype)
+    #Parameter 9: wallsurfaces ist Buffer für WallSurfaces
+    #Parameter 10: nosurfacetype ist Buffer für alle Flächen ohne Surfacetyp
+    def writegroup(entities, transformation, za, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, nosurfacetype)
       if(za > @maxtiefe)
         @maxtiefe += 1
       end
       entities.each do |entity|
         if(entity.class == Sketchup::Face)
-          polygonpos += 1 ## doplneny pozadovany typ
-          nosurfacetype << writeface(entity, transformation, za + 1, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, floorsurfaces, outerfloorsurfaces, intbuildinginstallations, buildinginstallations, doors, windows, ceilingsurfaces, interiorwallsurfaces, nosurfacetype)
+          polygonpos += 1
+          nosurfacetype << writeface(entity, transformation, za + 1, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, nosurfacetype)
           #Bei Gruppen und ComponentInstance rekursiver aufruf
         elsif(entity.class ==Sketchup::Group)
           if(entity.name != "")
             puts "Exportiere #{entity.name}"
           end
-          #Neue Transformation berechnen ## doplneny pozadovany typ
-          polygonpos = writegroup(entity.entities, transformation *  entity.transformation, za + 1, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, floorsurfaces, outerfloorsurfaces, intbuildinginstallations, buildinginstallations, doors, windows, ceilingsurfaces, interiorwallsurfaces, nosurfacetype)
+          #Neue Transformation berechnen
+          polygonpos = writegroup(entity.entities, transformation *  entity.transformation, za + 1, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, nosurfacetype)
         elsif(entity.class == Sketchup::ComponentInstance)
           if(entity.name != "")
             puts "Exportiere #{entity.name}"
           end
           #Neue Transformation berechnen
-          #Geometrie bei ComponentInstance steckt in der Definition! ## doplneny pozadovany typ
-          polygonpos = writegroup(entity.definition.entities, transformation * entity.transformation , za + 1, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, floorsurfaces, outerfloorsurfaces, intbuildinginstallations, buildinginstallations, doors, windows, ceilingsurfaces, interiorwallsurfaces, nosurfacetype)
+          #Geometrie bei ComponentInstance steckt in der Definition!
+          polygonpos = writegroup(entity.definition.entities, transformation * entity.transformation , za + 1, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, nosurfacetype)
         end
       end
       return polygonpos
@@ -1965,39 +1363,22 @@ if(interiorwallsurfaces.size > 0)
     #Parameter 6: polygonpos gibt Anzahl der Polygone an
     #Parameter 7: groundsurfaces ist Buffer für GroundSurfaces
     #Parameter 8: roofsurfaces ist Buffer für Roofsurface
-    #Parameter 9: wallsurfaces ist Buffer für WallSurfaces ## doplneny pozadovany typ a precislovano
-    #Parameter 10: floorsurfaces ist Buffer für FloorSurfaces
-	#Parameter 11: nosurfacetype ist Buffer für alle Flächen ohne Surfacetyp
-    def writeface(face, transformation, za, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, floorsurfaces, outerfloorsurfaces, intbuildinginstallations, buildinginstallations, doors, windows, ceilingsurfaces, interiorwallsurfaces, nosurfacetype)
+    #Parameter 9: wallsurfaces ist Buffer für WallSurfaces
+    #Parameter 10: nosurfacetype ist Buffer für alle Flächen ohne Surfacetyp
+    def writeface(face, transformation, za, tw, actbuildingid, polygonpos, groundsurfaces, roofsurfaces, wallsurfaces, nosurfacetype)
       #Wenn Nicht sichtbarer Layer, export überspringen
       return "" if(!face.layer.visible?)
       tmpfile = ""
       has_material = false
       layer = face.layer.name
       modus = 0
-      if(@gmlType == 0 and @lodNum > 1) # MultiSurface + Lod größer als 1 ## doplneny pozadovany typ
+      if(@gmlType == 0 and @lodNum > 1) # MultiSurface + Lod größer als 1
         if(layer == "GroundSurface")
           modus = 1
         elsif(layer == "WallSurface")
           modus = 3
         elsif(layer == "RoofSurface")
           modus = 2
-		    elsif(layer == "FloorSurface")
-          modus = 5 ## 
-        elsif(layer == "OuterFloorSurface")
-          modus = 7 ## 
-        elsif(layer == "IntBuildingInstallation")
-          modus = 8 ## 
-        elsif(layer == "BuildingInstallation")
-          modus = 6 ## 
-        elsif(layer == "Door")
-          modus = 4 ## 
-        elsif(layer == "Window")
-          modus = 9 ## 
-        elsif(layer == "CeilingSurface")
-          modus = 10 ##
-        elsif(layer == "InteriorWallSurface")
-          modus = 11 ##
         end
       end
       if(za > @maxtiefe)
@@ -2267,7 +1648,7 @@ if(interiorwallsurfaces.size > 0)
       end
       
       surfaceid = FHGelsenkirchen::stringDecode(face.get_attribute("Standard attribute", "BoundarySurfaceType ID"))
-      case(modus) ## doplneny pozadovany typ
+      case(modus)
       when 1
         if(groundsurfaces[surfaceid] == nil)
           groundsurfaces[surfaceid] = []
@@ -2284,51 +1665,8 @@ if(interiorwallsurfaces.size > 0)
         if(wallsurfaces[surfaceid] == nil)
           wallsurfaces[surfaceid] = []
         end
-        wallsurfaces[surfaceid] << tmpfile     
-	    when 5
-        if(floorsurfaces[surfaceid] == nil)
-          floorsurfaces[surfaceid] = []
-        end
-        floorsurfaces[surfaceid] << tmpfile
-        
-      when 7
-        if(outerfloorsurfaces[surfaceid] == nil )
-          outerfloorsurfaces[surfaceid] = []
-        end
-        outerfloorsurfaces[surfaceid] << tmpfile
-      when 6
-        if(buildinginstallations[surfaceid] == nil)
-          buildinginstallations[surfaceid] = []
-        end
-        buildinginstallations[surfaceid] << tmpfile
-      when 8
-        if(intbuildinginstallations[surfaceid] == nil)
-          intbuildinginstallations[surfaceid] = []
-        end
-        intbuildinginstallations[surfaceid] << tmpfile
-      when 10
-        if(ceilingsurfaces[surfaceid] == nil)
-          ceilingsurfaces[surfaceid] = []
-        end
-        ceilingsurfaces[surfaceid] << tmpfile
-      when 11
-       if(interiorwallsurfaces[surfaceid] == nil)
-          interiorwallsurfaces[surfaceid] = []
-       end
-        interiorwallsurfaces[surfaceid] << tmpfile
-      when 4
-        if(doors[surfaceid] == nil)
-          doors[surfaceid] = []
-        end
-        doors[surfaceid] << tmpfile       
-      when 9
-        if(windows[surfaceid] == nil)
-          windows[surfaceid] = []
-        end
-        windows[surfaceid] << tmpfile
-        
+        wallsurfaces[surfaceid] << tmpfile
         return ""
-        
       end
       return tmpfile
     end
